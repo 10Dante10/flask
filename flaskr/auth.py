@@ -13,20 +13,26 @@ bp = Blueprint('auth', __name__, url_prefix='/auth')
 def register():
     if request.method == 'POST':
         username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
+        verif_password =request.form['verif_password']
         db = get_db()
         error = None
 
         if not username:
-            error = 'Username is required.'
+            error = 'los usuarios no coinciden.'
+        elif not email:
+            error = 'el email no.'
         elif not password:
-            error = 'Password is required.'
+            error = 'Las contraseñas no coinciden.'
+        elif verif_password != password :
+            error = 'Las contraseñas no coinciden.'
 
         if error is None:
             try:
                 db.execute(
-                    "INSERT INTO user (username, password) VALUES (?, ?)",
-                    (username, generate_password_hash(password)),
+                    "INSERT INTO user (username, password, verif_password,email) VALUES (?,?,?,?)",
+                    (username, generate_password_hash(password),verif_password, email)
                 )
                 db.commit()
             except db.IntegrityError:
@@ -37,6 +43,7 @@ def register():
         flash(error)
 
     return render_template('auth/register.html')
+
 
 @bp.route('/login', methods=('GET', 'POST'))
 def login():
@@ -62,6 +69,7 @@ def login():
         flash(error)
 
     return render_template('auth/login.html')
+
 
 @bp.before_app_request
 def load_logged_in_user():
